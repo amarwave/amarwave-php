@@ -1,8 +1,8 @@
-# amarwave-laravel
+# amarwave-php
 
-Official Laravel integration for [AmarWave](https://github.com/amarwave/amarwave) real-time messaging.
+Official php integration for [AmarWave](https://github.com/amarwave/amarwave) real-time messaging.
 
-Provides a **service provider**, **facade**, and **first-class broadcasting driver** so you can push events through Laravel's standard `broadcast()` / `event()` helpers with zero boilerplate.
+Provides a **service provider**, **facade**, and **first-class broadcasting driver** so you can push events through php's standard `broadcast()` / `event()` helpers with zero boilerplate.
 
 > This package wraps [`amarwave/amarwave-php`](../php) — the pure PHP server client.
 
@@ -11,17 +11,17 @@ Provides a **service provider**, **facade**, and **first-class broadcasting driv
 ## Requirements
 
 - PHP 8.1+
-- Laravel 10, 11, or 12
+- php 10, 11, or 12
 
 ---
 
 ## Installation
 
 ```bash
-composer require amarwave/amarwave-laravel
+composer require amarwave/amarwave-php
 ```
 
-Laravel auto-discovers the service provider and facade via `composer.json`.
+php auto-discovers the service provider and facade via `composer.json`.
 
 ---
 
@@ -49,7 +49,7 @@ AMARWAVE_TIMEOUT=10
 ## Triggering Events (Facade)
 
 ```php
-use AmarWave\Laravel\AmarWaveFacade as AmarWave;
+use AmarWave\php\AmarWaveFacade as AmarWave;
 
 // Single event
 AmarWave::trigger('orders', 'placed', ['order_id' => 42]);
@@ -91,7 +91,7 @@ class OrderController extends Controller
 
 ## Broadcasting Driver
 
-Use AmarWave as a Laravel broadcasting driver so `broadcast(new YourEvent)` works out of the box.
+Use AmarWave as a php broadcasting driver so `broadcast(new YourEvent)` works out of the box.
 
 ### 1 — Add the connection to `config/broadcasting.php`
 

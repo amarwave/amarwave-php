@@ -1,6 +1,6 @@
 {
-  "name": "amarwave/amarwave-laravel",
-  "description": "Official Laravel integration for AmarWave real-time messaging. Service provider, facade, and broadcasting driver.",
+  "name": "amarwave/amarwave-php",
+  "description": "Official php integration for AmarWave real-time messaging. Service provider, facade, and broadcasting driver.",
   "version": "1.0.0",
   "type": "library",
   "license": "MIT",
@@ -16,21 +16,21 @@
   },
   "autoload": {
     "psr-4": {
-      "AmarWave\\Laravel\\": "src/"
+      "AmarWave\\php\\": "src/"
     }
   },
   "autoload-dev": {
     "psr-4": {
-      "AmarWave\\Laravel\\Tests\\": "tests/"
+      "AmarWave\\php\\Tests\\": "tests/"
     }
   },
   "extra": {
-    "laravel": {
+    "php": {
       "providers": [
-        "AmarWave\\Laravel\\AmarWaveServiceProvider"
+        "AmarWave\\php\\AmarWaveServiceProvider"
       ],
       "aliases": {
-        "AmarWave": "AmarWave\\Laravel\\AmarWaveFacade"
+        "AmarWave": "AmarWave\\php\\AmarWaveFacade"
       }
     }
   },

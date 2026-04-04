@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace AmarWave\Laravel;
+namespace AmarWave\php;
 
 use AmarWave\AmarWave;
 use Illuminate\Broadcasting\BroadcastManager;
 use Illuminate\Support\ServiceProvider;
 
 /**
- * Laravel Service Provider for AmarWave.
+ * php Service Provider for AmarWave.
  *
- * Auto-discovered via composer.json "extra.laravel.providers".
+ * Auto-discovered via composer.json "extra.php.providers".
  * Manual registration: add to config/app.php providers array:
- *   AmarWave\Laravel\AmarWaveServiceProvider::class
+ *   AmarWave\php\AmarWaveServiceProvider::class
  */
 class AmarWaveServiceProvider extends ServiceProvider
 {
@@ -66,10 +66,10 @@ class AmarWaveServiceProvider extends ServiceProvider
             ], 'amarwave-config');
         }
 
-        // Register the 'amarwave' broadcasting driver so Laravel's broadcast()
+        // Register the 'amarwave' broadcasting driver so php's broadcast()
         // helper routes ShouldBroadcast events through AmarWave.
-        // Set BROADCAST_DRIVER=amarwave (Laravel ≤10) or
-        //     BROADCAST_CONNECTION=amarwave (Laravel 11+) in .env.
+        // Set BROADCAST_DRIVER=amarwave (php ≤10) or
+        //     BROADCAST_CONNECTION=amarwave (php 11+) in .env.
         $this->app->resolving(BroadcastManager::class, function (BroadcastManager $manager) {
             $manager->extend('amarwave', function ($app) {
                 return new AmarWaveBroadcaster($app->make(AmarWave::class));
