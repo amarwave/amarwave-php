@@ -7,8 +7,8 @@ return [
     | AmarWave Application Key
     |--------------------------------------------------------------------------
     |
-    | The app_key for your AmarWave application. Find it in the AmarWave
-    | dashboard under your application settings.
+    | The app_key for your AmarWave credential. Find it in the AmarWave
+    | dashboard under App Keys.
     |
     */
 
@@ -19,8 +19,7 @@ return [
     | AmarWave Application Secret
     |--------------------------------------------------------------------------
     |
-    | The app_secret for your AmarWave application. Keep this value secret
-    | and never expose it to clients.
+    | Keep this value secret and never expose it to browser clients.
     |
     */
 
@@ -28,58 +27,42 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | AmarWave API Host
+    | Cluster
     |--------------------------------------------------------------------------
     |
-    | The hostname of your AmarWave API server.
+    | The cluster determines the API host automatically. Use 'default' for
+    | the hosted AmarWave service (amarwave.com). Use 'local' for a local
+    | self-hosted server. Set to null to configure host/port/ssl manually.
+    |
+    | Env: AMARWAVE_CLUSTER=default
+    |
+    | Available: default, local, eu, us, ap1, ap2
     |
     */
 
-    'host' => env('AMARWAVE_HOST', 'localhost'),
+    'cluster' => env('AMARWAVE_CLUSTER', 'default'),
 
     /*
     |--------------------------------------------------------------------------
-    | AmarWave API Port
+    | Manual Connection (used only when cluster is null)
     |--------------------------------------------------------------------------
     |
-    | The TCP port of your AmarWave API server.
+    | If you self-host AmarWave on a custom domain, set cluster to null and
+    | configure host, port, and ssl below.
     |
     */
 
-    'port' => (int) env('AMARWAVE_PORT', 8000),
-
-    /*
-    |--------------------------------------------------------------------------
-    | Use TLS / HTTPS
-    |--------------------------------------------------------------------------
-    |
-    | Set to true to use HTTPS for API requests. Recommended for production.
-    |
-    */
-
-    'ssl' => (bool) env('AMARWAVE_SSL', false),
+    'ssl'  => (bool) env('AMARWAVE_SSL', false),
 
     /*
     |--------------------------------------------------------------------------
     | Request Timeout
     |--------------------------------------------------------------------------
     |
-    | Maximum number of seconds to wait for an API response before timing out.
+    | Maximum number of seconds to wait for an API response.
     |
     */
 
     'timeout' => (int) env('AMARWAVE_TIMEOUT', 10),
-
-    /*
-    |--------------------------------------------------------------------------
-    | API Trigger Path
-    |--------------------------------------------------------------------------
-    |
-    | The HTTP path for the AmarWave event trigger endpoint.
-    | Change this only if you have customised the server route.
-    |
-    */
-
-    'api_path' => env('AMARWAVE_API_PATH', '/api/v1/trigger'),
 
 ];

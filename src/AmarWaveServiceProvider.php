@@ -31,14 +31,24 @@ class AmarWaveServiceProvider extends ServiceProvider
             /** @var array $cfg */
             $cfg = $app['config']->get('amarwave', []);
 
+            $cluster = ($cfg['cluster'] ?? null) ?: null; // null disables cluster mode
+
+            if ($cluster !== null) {
+                // Cluster mode — host/port/ssl are resolved automatically from the cluster.
+                return new AmarWave(
+                    appKey:    (string) ($cfg['app_key']    ?? ''),
+                    appSecret: (string) ($cfg['app_secret'] ?? ''),
+                    cluster:   $cluster,
+                    timeout:   (int)    ($cfg['timeout']    ?? 10),
+                );
+            }
+
+            // Manual mode — use explicit host / port / ssl.
             return new AmarWave(
                 appKey:    (string) ($cfg['app_key']    ?? ''),
                 appSecret: (string) ($cfg['app_secret'] ?? ''),
-                host:      (string) ($cfg['host']       ?? 'localhost'),
-                port:      (int)    ($cfg['port']       ?? 8000),
-                ssl:       (bool)   ($cfg['ssl']        ?? false),
+                cluster:   null,
                 timeout:   (int)    ($cfg['timeout']    ?? 10),
-                apiPath:   (string) ($cfg['api_path']   ?? '/api/v1/trigger'),
             );
         });
 
@@ -57,8 +67,9 @@ class AmarWaveServiceProvider extends ServiceProvider
         }
 
         // Register the 'amarwave' broadcasting driver so Laravel's broadcast()
-        // system routes events through AmarWave.
-        // Set BROADCAST_DRIVER=amarwave in .env — see README for full setup.
+        // helper routes ShouldBroadcast events through AmarWave.
+        // Set BROADCAST_DRIVER=amarwave (Laravel ≤10) or
+        //     BROADCAST_CONNECTION=amarwave (Laravel 11+) in .env.
         $this->app->resolving(BroadcastManager::class, function (BroadcastManager $manager) {
             $manager->extend('amarwave', function ($app) {
                 return new AmarWaveBroadcaster($app->make(AmarWave::class));
