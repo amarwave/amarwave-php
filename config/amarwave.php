@@ -44,18 +44,6 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Manual Connection (used only when cluster is null)
-    |--------------------------------------------------------------------------
-    |
-    | If you self-host AmarWave on a custom domain, set cluster to null and
-    | configure host, port, and ssl below.
-    |
-    */
-
-    'ssl'  => (bool) env('AMARWAVE_SSL', false),
-
-    /*
-    |--------------------------------------------------------------------------
     | Request Timeout
     |--------------------------------------------------------------------------
     |

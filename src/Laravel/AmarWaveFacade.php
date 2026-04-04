@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-namespace AmarWave\php;
+namespace AmarWave\Laravel;
 
 use Illuminate\Support\Facades\Facade;
 
 /**
- * php Facade for AmarWave.
+ * Laravel Facade for AmarWave.
  *
- * Auto-registered via composer.json "extra.php.aliases".
+ * Auto-registered via composer.json "extra.laravel.aliases".
  * Manual registration: add to config/app.php aliases:
- *   'AmarWave' => AmarWave\php\AmarWaveFacade::class
+ *   'AmarWave' => AmarWave\Laravel\AmarWaveFacade::class
  *
  * Usage:
- *   use AmarWave\php\AmarWaveFacade as AmarWave;
+ *   use AmarWave\Laravel\AmarWaveFacade as AmarWave;
  *
  *   AmarWave::trigger('my-channel', 'my-event', ['key' => 'value']);
  *   AmarWave::triggerBatch([...]);

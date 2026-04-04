@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace AmarWave\php;
+namespace AmarWave\Laravel;
 
 use AmarWave\AmarWave;
 use AmarWave\AmarWaveException;
@@ -11,7 +11,7 @@ use Illuminate\Broadcasting\Broadcasters\Broadcaster;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 /**
- * php Broadcasting driver for AmarWave.
+ * Laravel Broadcasting driver for AmarWave.
  *
  * Enables `broadcast(new YourEvent)` to push events to AmarWave channels.
  *
@@ -20,7 +20,7 @@ use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
  *       'amarwave' => ['driver' => 'amarwave'],
  *   ],
  *
- * Then set BROADCAST_DRIVER=amarwave in .env.
+ * Then set BROADCAST_CONNECTION=amarwave in .env.
  *
  * Channel authorization is handled via routes/channels.php (same as Pusher).
  */
@@ -35,10 +35,6 @@ class AmarWaveBroadcaster extends Broadcaster
     /**
      * Authenticate an incoming channel subscription request.
      *
-     * Called automatically when the client SDK hits /broadcasting/auth.
-     * Validates the user against the channel callbacks in routes/channels.php,
-     * then returns a signed auth token.
-     *
      * @throws AccessDeniedHttpException
      */
     public function auth($request): mixed
@@ -46,7 +42,6 @@ class AmarWaveBroadcaster extends Broadcaster
         $channelName = (string) $request->input('channel_name', '');
         $socketId    = (string) $request->input('socket_id', '');
 
-        // Validate against routes/channels.php callbacks.
         $normalised  = $this->normaliseChannelName($channelName);
         $channelAuth = $this->verifyUserCanAccessChannel($request, $normalised);
 
@@ -75,17 +70,15 @@ class AmarWaveBroadcaster extends Broadcaster
     /**
      * Broadcast the given event on all specified channels.
      *
-     * Called by php when you dispatch a `ShouldBroadcast` event.
-     *
-     * @param  string[] $channels  Channel names from `broadcastOn()`.
-     * @param  string   $event     Event name from `broadcastAs()`.
-     * @param  array    $payload   Data payload from `broadcastWith()`.
+     * @param  string[] $channels
+     * @param  string   $event
+     * @param  array    $payload
      *
      * @throws BroadcastException
      */
     public function broadcast(array $channels, $event, array $payload = []): void
     {
-        unset($payload['socket']); // strip php-internal socket_id key
+        unset($payload['socket']); // strip framework-internal socket_id key
 
         foreach ($channels as $channel) {
             $name = $this->formatChannelName((string) $channel);
@@ -104,9 +97,6 @@ class AmarWaveBroadcaster extends Broadcaster
     // Helpers
     // -------------------------------------------------------------------------
 
-    /**
-     * Strip private- / presence- prefix to match channel route definitions.
-     */
     private function normaliseChannelName(string $channel): string
     {
         foreach (['private-encrypted-', 'private-', 'presence-'] as $prefix) {
@@ -117,9 +107,6 @@ class AmarWaveBroadcaster extends Broadcaster
         return $channel;
     }
 
-    /**
-     * Ensure we always work with plain channel name strings.
-     */
     private function formatChannelName(string $channel): string
     {
         return $channel;

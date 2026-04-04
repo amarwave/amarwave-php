@@ -1,17 +1,19 @@
 # amarwave-php
 
-Official php integration for [AmarWave](https://github.com/amarwave/amarwave) real-time messaging.
+Official PHP client for [AmarWave](https://github.com/amarwave/amarwave) real-time messaging.
 
-Provides a **service provider**, **facade**, and **first-class broadcasting driver** so you can push events through php's standard `broadcast()` / `event()` helpers with zero boilerplate.
+Works in **any PHP environment** — raw PHP, Laravel, Symfony, or any other framework.
 
-> This package wraps [`amarwave/amarwave-php`](../php) — the pure PHP server client.
+For Laravel projects, a **service provider**, **facade**, and **broadcasting driver** are included automatically.
 
 ---
 
 ## Requirements
 
 - PHP 8.1+
-- php 10, 11, or 12
+- `ext-curl`
+- `ext-json`
+- Laravel 10, 11, or 12 *(optional — only needed for the Laravel integration)*
 
 ---
 
@@ -21,11 +23,51 @@ Provides a **service provider**, **facade**, and **first-class broadcasting driv
 composer require amarwave/amarwave-php
 ```
 
-php auto-discovers the service provider and facade via `composer.json`.
+Laravel auto-discovers the service provider and facade via `composer.json`.
 
 ---
 
-## Configuration
+## Usage — Raw PHP
+
+```php
+use AmarWave\AmarWave;
+use AmarWave\AmarWaveException;
+
+$aw = new AmarWave(
+    appKey:    'your-app-key',
+    appSecret: 'your-app-secret',
+    cluster:   'default',
+);
+
+// Trigger a single event
+$aw->trigger('orders', 'placed', ['order_id' => 42]);
+
+// Trigger multiple events in one request
+$aw->triggerBatch([
+    ['channel' => 'chat-1', 'event' => 'message', 'data' => ['text' => 'Hello']],
+    ['channel' => 'chat-2', 'event' => 'message', 'data' => ['text' => 'World']],
+]);
+```
+
+### Error handling
+
+```php
+use AmarWave\AmarWaveException;
+
+try {
+    $aw->trigger('channel', 'event', $data);
+} catch (AmarWaveException $e) {
+    $status = $e->getStatusCode();
+    $body   = $e->getResponseBody();
+    echo "AmarWave {$status}: {$e->getMessage()}";
+}
+```
+
+---
+
+## Usage — Laravel
+
+### Configuration
 
 Publish the config file:
 
@@ -38,38 +80,30 @@ Add to your `.env`:
 ```dotenv
 AMARWAVE_APP_KEY=your-app-key
 AMARWAVE_APP_SECRET=your-app-secret
-AMARWAVE_HOST=localhost
-AMARWAVE_PORT=8000
-AMARWAVE_SSL=false
+AMARWAVE_CLUSTER=default
 AMARWAVE_TIMEOUT=10
 ```
 
----
-
-## Triggering Events (Facade)
+### Facade
 
 ```php
-use AmarWave\php\AmarWaveFacade as AmarWave;
+use AmarWave\Laravel\AmarWaveFacade as AmarWave;
 
-// Single event
 AmarWave::trigger('orders', 'placed', ['order_id' => 42]);
 
-// Batch
 AmarWave::triggerBatch([
     ['channel' => 'chat-1', 'event' => 'message', 'data' => ['text' => 'Hello']],
     ['channel' => 'chat-2', 'event' => 'message', 'data' => ['text' => 'World']],
 ]);
 ```
 
-Or with the global alias (auto-registered):
+Or with the global alias:
 
 ```php
 \AmarWave::trigger('orders', 'placed', ['order_id' => 42]);
 ```
 
----
-
-## Dependency Injection
+### Dependency Injection
 
 ```php
 use AmarWave\AmarWave;
@@ -87,32 +121,31 @@ class OrderController extends Controller
 }
 ```
 
----
+### Broadcasting Driver
 
-## Broadcasting Driver
+Use AmarWave as a Laravel broadcasting driver so `broadcast(new YourEvent)` works out of the box.
 
-Use AmarWave as a php broadcasting driver so `broadcast(new YourEvent)` works out of the box.
-
-### 1 — Add the connection to `config/broadcasting.php`
+**1 — Add the connection to `config/broadcasting.php`**
 
 ```php
 'connections' => [
-
     'amarwave' => [
         'driver' => 'amarwave',
     ],
-
     // ...existing drivers
 ],
 ```
 
-### 2 — Set the driver in `.env`
+**2 — Set the driver in `.env`**
 
 ```dotenv
+# Laravel 10
 BROADCAST_DRIVER=amarwave
+# Laravel 11+
+BROADCAST_CONNECTION=amarwave
 ```
 
-### 3 — Create a broadcastable event
+**3 — Create a broadcastable event**
 
 ```php
 namespace App\Events;
@@ -133,54 +166,32 @@ class OrderPlaced implements ShouldBroadcast
         ];
     }
 
-    public function broadcastAs(): string
-    {
-        return 'order.placed';
-    }
+    public function broadcastAs(): string { return 'order.placed'; }
 
     public function broadcastWith(): array
     {
-        return [
-            'order_id' => $this->order['id'],
-            'total'    => $this->order['total'],
-        ];
+        return ['order_id' => $this->order['id'], 'total' => $this->order['total']];
     }
 }
 ```
 
-### 4 — Dispatch
+**4 — Dispatch**
 
 ```php
 broadcast(new OrderPlaced($order));
-// or via the event system (queued by default with ShouldBroadcast)
-event(new OrderPlaced($order));
 ```
 
----
+### Channel Authorization
 
-## Channel Authorization (private / presence)
-
-### Register the auth route
-
-In `routes/api.php` (or `routes/web.php`):
+In `routes/channels.php`:
 
 ```php
 use Illuminate\Support\Facades\Broadcast;
 
-Broadcast::routes(['middleware' => ['auth:sanctum']]);
-```
-
-### Define channel callbacks in `routes/channels.php`
-
-```php
-use Illuminate\Support\Facades\Broadcast;
-
-// Private channel — return true/false
 Broadcast::channel('user.{id}', function ($user, $id) {
     return (int) $user->id === (int) $id;
 });
 
-// Presence channel — return member data array (or false to deny)
 Broadcast::channel('presence-room.{roomId}', function ($user, $roomId) {
     $room = \App\Models\Room::find($roomId);
     if ($room?->members()->where('user_id', $user->id)->exists()) {
@@ -188,65 +199,6 @@ Broadcast::channel('presence-room.{roomId}', function ($user, $roomId) {
     }
     return false;
 });
-```
-
-### Manual auth endpoint (alternative)
-
-If you prefer a manual route instead of `Broadcast::routes()`:
-
-```php
-Route::post('/broadcasting/auth', function (Request $request) {
-    $socketId = $request->input('socket_id');
-    $channel  = $request->input('channel_name');
-
-    if (str_starts_with($channel, 'presence-')) {
-        $auth = app(\AmarWave\AmarWave::class)->authenticatePresence(
-            $socketId,
-            $channel,
-            ['user_id' => (string) $request->user()->id,
-             'user_info' => ['name' => $request->user()->name]]
-        );
-    } else {
-        $auth = ['auth' => app(\AmarWave\AmarWave::class)->authenticate($socketId, $channel)];
-    }
-
-    return response()->json($auth);
-})->middleware('auth:sanctum');
-```
-
----
-
-## AmarWave Client-Side Config
-
-Point your JS/Flutter/Swift client at the same server:
-
-```js
-const aw = new AmarWave({
-    appKey: 'your-app-key',
-    appSecret: 'your-app-secret',   // OR use authEndpoint
-    wsHost: 'localhost',
-    wsPort: 3001,
-    apiHost: 'localhost',
-    apiPort: 8000,
-    authEndpoint: '/broadcasting/auth',
-    auth: { headers: { Authorization: `Bearer ${token}` } },
-});
-```
-
----
-
-## Error Handling
-
-```php
-use AmarWave\AmarWaveException;
-
-try {
-    AmarWave::trigger('channel', 'event', $data);
-} catch (AmarWaveException $e) {
-    $status = $e->getStatusCode();
-    $body   = $e->getResponseBody();
-    logger()->error("AmarWave {$status}: {$e->getMessage()}");
-}
 ```
 
 ---
