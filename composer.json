@@ -1,6 +1,6 @@
 {
   "name": "amarwave/amarwave-php",
-  "description": "Official PHP client for AmarWave real-time messaging. Works with raw PHP, Laravel, Symfony, or any PHP framework.",
+  "description": "Official PHP client for AmarWave real-time messaging. Works with raw PHP, Symfony, or any PHP framework.",
   "version": "1.0.0",
   "type": "library",
   "license": "MIT",
@@ -10,12 +10,10 @@
     "ext-json": "*"
   },
   "require-dev": {
-    "phpunit/phpunit": "^10.0",
-    "orchestra/testbench": "^8.0 || ^9.0"
+    "phpunit/phpunit": "^10.0"
   },
   "suggest": {
-    "illuminate/broadcasting": "Required for the Laravel broadcasting driver (AmarWave\\Laravel\\AmarWaveBroadcaster).",
-    "illuminate/support": "Required for the Laravel service provider and facade."
+    "amarwave/amarwave-laravel": "Laravel service provider, facade, and broadcasting driver for AmarWave."
   },
   "autoload": {
     "psr-4": {
@@ -25,16 +23,6 @@
   "autoload-dev": {
     "psr-4": {
       "AmarWave\\Tests\\": "tests/"
-    }
-  },
-  "extra": {
-    "laravel": {
-      "providers": [
-        "AmarWave\\Laravel\\AmarWaveServiceProvider"
-      ],
-      "aliases": {
-        "AmarWave": "AmarWave\\Laravel\\AmarWaveFacade"
-      }
     }
   },
   "minimum-stability": "stable",
