@@ -7,27 +7,24 @@ namespace AmarWave;
 /**
  * AmarWave PHP Client.
  *
- * Works in any PHP environment — raw PHP, Laravel, Symfony, or any other framework.
+ * Works in any PHP environment — raw PHP, Symfony, or any other framework.
  *
- * Usage (raw PHP):
+ * Usage:
  *   $aw = new AmarWave\AmarWave(appKey: 'key', appSecret: 'secret');
  *   $aw->trigger('channel', 'event', ['key' => 'value']);
- *
- * Usage (Laravel — via service container):
- *   app(\AmarWave\AmarWave::class)->trigger('channel', 'event', $data);
  */
 class AmarWave
 {
-    private readonly string $resolvedHost;
-    private readonly int $resolvedPort;
+    private readonly string $resolvedBaseUrl;
 
     /** @var array<string, string> */
-    private static array $clusterHosts = [
-        'default' => 'api.amarwave.com',
-        'eu'      => 'api-eu.amarwave.com',
-        'us'      => 'api-us.amarwave.com',
-        'ap1'     => 'api-ap1.amarwave.com',
-        'ap2'     => 'api-ap2.amarwave.com',
+    private static array $clusterApis = [
+        'default' => 'https://amarwave.com',
+        'local'   => 'http://localhost:8000',
+        'eu'      => 'https://amarwave.com',
+        'us'      => 'https://amarwave.com',
+        'ap1'     => 'https://amarwave.com',
+        'ap2'     => 'https://amarwave.com',
     ];
 
     public function __construct(
@@ -36,8 +33,7 @@ class AmarWave
         private readonly string $cluster = 'default',
         private readonly int $timeout = 10,
     ) {
-        $this->resolvedHost = self::$clusterHosts[$cluster] ?? 'api.amarwave.com';
-        $this->resolvedPort = 443;
+        $this->resolvedBaseUrl = self::$clusterApis[$cluster] ?? 'https://amarwave.com';
     }
 
     // -------------------------------------------------------------------------
@@ -132,10 +128,8 @@ class AmarWave
      */
     private function post(string $path, string $body): array
     {
-        $url = "https://{$this->resolvedHost}:{$this->resolvedPort}{$path}";
-
-        $ch = curl_init($url);
-        curl_setopt_array($ch, [
+        $url  = $this->resolvedBaseUrl . $path;
+        $opts = [
             CURLOPT_POST           => true,
             CURLOPT_POSTFIELDS     => $body,
             CURLOPT_RETURNTRANSFER => true,
@@ -145,8 +139,14 @@ class AmarWave
                 'Content-Length: ' . strlen($body),
                 'Authorization: ' . $this->buildAuthHeader('POST', $path, $body),
             ],
-            CURLOPT_SSL_VERIFYPEER => true,
-        ]);
+        ];
+
+        if (str_starts_with($url, 'https')) {
+            $opts[CURLOPT_SSL_VERIFYPEER] = true;
+        }
+
+        $ch = curl_init($url);
+        curl_setopt_array($ch, $opts);
 
         $response   = curl_exec($ch);
         $statusCode = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
