@@ -347,7 +347,7 @@ $auth = $aw->authenticatePresence($socketId, 'presence-room.42', [
 |-------------|--------|-------------|-----------------------------------------------|
 | `appKey`    | string | —           | Your AmarWave app key                         |
 | `appSecret` | string | —           | Your AmarWave app secret (keep server-side)   |
-| `cluster`   | string | `'default'` | `default`, `local`, `eu`, `us`, `ap1`, `ap2` |
+| `cluster`   | string | `'default'` | `default`, `eu`, `us`, `ap1`, `ap2`          |
 | `timeout`   | int    | `10`        | HTTP request timeout in seconds               |
 
 ---

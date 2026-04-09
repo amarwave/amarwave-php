@@ -20,12 +20,10 @@ class AmarWave
 {
     private readonly string $resolvedHost;
     private readonly int $resolvedPort;
-    private readonly bool $resolvedSsl;
 
     /** @var array<string, string> */
     private static array $clusterHosts = [
         'default' => 'api.amarwave.com',
-        'local'   => 'localhost',
         'eu'      => 'api-eu.amarwave.com',
         'us'      => 'api-us.amarwave.com',
         'ap1'     => 'api-ap1.amarwave.com',
@@ -39,7 +37,6 @@ class AmarWave
         private readonly int $timeout = 10,
     ) {
         $this->resolvedHost = self::$clusterHosts[$cluster] ?? 'api.amarwave.com';
-        $this->resolvedSsl  = true;
         $this->resolvedPort = 443;
     }
 
@@ -135,8 +132,7 @@ class AmarWave
      */
     private function post(string $path, string $body): array
     {
-        $scheme = $this->resolvedSsl ? 'https' : 'http';
-        $url    = "{$scheme}://{$this->resolvedHost}:{$this->resolvedPort}{$path}";
+        $url = "https://{$this->resolvedHost}:{$this->resolvedPort}{$path}";
 
         $ch = curl_init($url);
         curl_setopt_array($ch, [
@@ -149,11 +145,8 @@ class AmarWave
                 'Content-Length: ' . strlen($body),
                 'Authorization: ' . $this->buildAuthHeader('POST', $path, $body),
             ],
+            CURLOPT_SSL_VERIFYPEER => true,
         ]);
-
-        if ($this->resolvedSsl) {
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
-        }
 
         $response   = curl_exec($ch);
         $statusCode = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
