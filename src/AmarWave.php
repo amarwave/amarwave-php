@@ -20,6 +20,7 @@ class AmarWave
     /** @var array<string, string> */
     private static array $clusterApis = [
         'default' => 'https://amarwave.com',
+        'local'   => 'http://localhost:8000',
         'eu'      => 'https://amarwave.com',
         'us'      => 'https://amarwave.com',
         'ap1'     => 'https://amarwave.com',
@@ -50,12 +51,14 @@ class AmarWave
     public function trigger(string $channel, string $event, mixed $data = null): array
     {
         $body = json_encode([
-            'channel' => $channel,
-            'event'   => $event,
-            'data'    => is_array($data) ? json_encode($data) : $data,
+            'app_key'    => $this->appKey,
+            'app_secret' => $this->appSecret,
+            'channel'    => $channel,
+            'name'       => $event,
+            'data'       => $data,
         ], JSON_THROW_ON_ERROR);
 
-        return $this->post('/api/events', $body);
+        return $this->post('/api/v1/trigger', $body);
     }
 
     /**
@@ -71,16 +74,18 @@ class AmarWave
         $batch = array_map(static function (array $e): array {
             return [
                 'channel' => $e['channel'],
-                'event'   => $e['event'],
-                'data'    => isset($e['data']) && is_array($e['data'])
-                    ? json_encode($e['data'])
-                    : ($e['data'] ?? null),
+                'name'    => $e['event'],
+                'data'    => $e['data'] ?? null,
             ];
         }, $events);
 
-        $body = json_encode(['batch' => $batch], JSON_THROW_ON_ERROR);
+        $body = json_encode([
+            'app_key'    => $this->appKey,
+            'app_secret' => $this->appSecret,
+            'events'     => $batch,
+        ], JSON_THROW_ON_ERROR);
 
-        return $this->post('/api/batch_events', $body);
+        return $this->post('/api/v1/trigger/batch', $body);
     }
 
     // -------------------------------------------------------------------------
